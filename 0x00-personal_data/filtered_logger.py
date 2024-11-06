@@ -12,9 +12,5 @@ def filter_datum(
     """
     Obfuscate specific fields in a log message.
     """
-    for field in fields:
-        message = re.sub(
-            field + "=.*?" + separator, field + "=" +
-            redaction + separator, message
-        )
-    return message
+    extract, replace = (patterns["extract"], patterns["replace"])
+    return re.sub(extract(fields, separator), replace(redaction), message)
