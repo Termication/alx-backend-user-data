@@ -10,20 +10,23 @@ from typing import List
 
 # Constants and patterns used for redacting sensitive information
 patterns = {
-    'extract': lambda x, y: r'(?P<field>{})=[^{}]*'.format('|'.join(x), y),
-    'replace': lambda x: r'\g<field>={}'.format(x),
+    "extract": lambda x, y: r"(?P<field>{})=[^{}]*".format("|".join(x), y),
+    "replace": lambda x: r"\g<field>={}".format(x),
 }
 PII_FIELDS = ("name", "email", "phone", "ssn", "password")
 
 
-def filter_datum(fields: List[str], redaction: str, message: str, separator: str) -> str:
+def filter_datum(
+    fields: List[str], redaction: str, message: str, separator: str
+) -> str:
     """Obfuscates specified fields in a log message."""
     extract, replace = patterns["extract"], patterns["replace"]
     return re.sub(extract(fields, separator), replace(redaction), message)
 
 
 class RedactingFormatter(logging.Formatter):
-    """Redacting Formatter for log messages containing sensitive information."""
+    """Redacting Formatter for log messages
+    containing sensitive information."""
 
     REDACTION = "***"
     FORMAT = "[HOLBERTON] %(name)s %(levelname)s %(asctime)-15s: %(message)s"
@@ -68,18 +71,20 @@ def get_db() -> mysql.connector.connection.MySQLConnection:
 def main():
     """Logs user records from the database."""
     fields = "name,email,phone,ssn,password,ip,last_login,user_agent"
-    columns = fields.split(',')
+    columns = fields.split(",")
     query = f"SELECT {fields} FROM users;"
     info_logger = get_logger()
     connection = get_db()
-    
+
     with connection.cursor() as cursor:
         cursor.execute(query)
         rows = cursor.fetchall()
         for row in rows:
             record = map(lambda x: f"{x[0]}={x[1]}", zip(columns, row))
             msg = "; ".join(list(record)) + ";"
-            log_record = logging.LogRecord("user_data", logging.INFO, None, None, msg, None, None)
+            log_record = logging.LogRecord(
+                "user_data", logging.INFO, None, None, msg, None, None
+            )
             info_logger.handle(log_record)
 
 
